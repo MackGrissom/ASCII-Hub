@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import appSource from "./App.jsx?raw";
 
 const MONO = "'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace";
 
@@ -501,30 +502,48 @@ function TieDye({ size = 13, width = 56, height = 28, customChars = "", tiePalet
 }
 
 /* ═══════════════════════════════════════════════════════════
+   SOURCE EXTRACTION (for copy-paste)
+   ═══════════════════════════════════════════════════════════ */
+function extractFromSource(marker) {
+  const idx = appSource.indexOf(marker);
+  if (idx === -1) return "";
+  const braceStart = appSource.indexOf("{", idx);
+  let depth = 0;
+  for (let i = braceStart; i < appSource.length; i++) {
+    if (appSource[i] === "{") depth++;
+    else if (appSource[i] === "}") {
+      depth--;
+      if (depth === 0) return appSource.slice(idx, i + 1);
+    }
+  }
+  return "";
+}
+
+/* ═══════════════════════════════════════════════════════════
    ANIMATION REGISTRY
    ═══════════════════════════════════════════════════════════ */
 const animations = [
-  { name: "Matrix Rain", component: MatrixRain, defaultColor: "#4ade80", hasCustomChars: true, charLabel: "falling characters", charPlaceholder: "ABCDEF1234" },
-  { name: "Ocean Wave", component: Wave, defaultColor: "#22d3ee", hasCustomChars: true, charLabel: "density characters (4+)", charPlaceholder: "█▓▒░ " },
-  { name: "Fire", component: Fire, defaultColor: "#f97316", hasCustomChars: true, charLabel: "intensity chars (4+)", charPlaceholder: " .:-=+*#%@" },
-  { name: "DNA Helix", component: DNAHelix, defaultColor: "#a78bfa", hasCustomChars: false },
-  { name: "Starfield", component: Starfield, defaultColor: "#e4e4e7", hasCustomChars: true, charLabel: "star chars (3)", charPlaceholder: "·✦★" },
-  { name: "Radar Sweep", component: Radar, defaultColor: "#4ade80", hasCustomChars: false },
-  { name: "Equalizer", component: Equalizer, defaultColor: "#f472b6", hasCustomChars: false },
-  { name: "3D Cube", component: SpinCube, defaultColor: "#fbbf24", hasCustomChars: false },
-  { name: "Typewriter", component: Typing, defaultColor: "#e4e4e7", hasCustomChars: true, charLabel: "text to type", charPlaceholder: "Hello world..." },
-  { name: "Pulsing Heart", component: Heart, defaultColor: "#f43f5e", hasCustomChars: false },
-  { name: "Rain", component: Rain, defaultColor: "#60a5fa", hasCustomChars: true, charLabel: "raindrop chars", charPlaceholder: "│¦" },
-  { name: "Spinner", component: Spinner, defaultColor: "#fbbf24", hasCustomChars: false },
-  { name: "Plasma", component: Plasma, defaultColor: "#c084fc", hasCustomChars: true, charLabel: "density chars (4+)", charPlaceholder: " ░▒▓█▓▒░" },
-  { name: "Sine Snake", component: SineSnake, defaultColor: "#34d399", hasCustomChars: false },
-  { name: "Game of Life", component: GameOfLife, defaultColor: "#4ade80", hasCustomChars: true, charLabel: "alive + dead char", charPlaceholder: "█ " },
-  { name: "Analog Clock", component: AsciiClock, defaultColor: "#fbbf24", hasCustomChars: false },
-  { name: "Bouncing Ball", component: BouncingBall, defaultColor: "#fb923c", hasCustomChars: false },
-  { name: "Glitch Text", component: GlitchText, defaultColor: "#ef4444", hasCustomChars: true, charLabel: "text to glitch", charPlaceholder: "SYSTEM ERROR" },
-  { name: "Mandala", component: Mandala, defaultColor: "#e879f9", hasCustomChars: true, charLabel: "pattern chars (4+)", charPlaceholder: " ·∘○◎●◉" },
-  { name: "Progress Bar", component: ProgressBar, defaultColor: "#22d3ee", hasCustomChars: true, charLabel: "fill + empty char", charPlaceholder: "█░" },
-  { name: "Tie-Dye", component: TieDye, defaultColor: null, hasCustomChars: true, isTieDye: true, charLabel: "density chars (4+)", charPlaceholder: " ░▒▓█▓▒░" },
+  { name: "Matrix Rain", funcName: "MatrixRain", component: MatrixRain, defaultColor: "#4ade80", hasCustomChars: true, charLabel: "falling characters", charPlaceholder: "ABCDEF1234" },
+  { name: "Ocean Wave", funcName: "Wave", component: Wave, defaultColor: "#22d3ee", hasCustomChars: true, charLabel: "density characters (4+)", charPlaceholder: "█▓▒░ " },
+  { name: "Fire", funcName: "Fire", component: Fire, defaultColor: "#f97316", hasCustomChars: true, charLabel: "intensity chars (4+)", charPlaceholder: " .:-=+*#%@" },
+  { name: "DNA Helix", funcName: "DNAHelix", component: DNAHelix, defaultColor: "#a78bfa", hasCustomChars: false },
+  { name: "Starfield", funcName: "Starfield", component: Starfield, defaultColor: "#e4e4e7", hasCustomChars: true, charLabel: "star chars (3)", charPlaceholder: "·✦★" },
+  { name: "Radar Sweep", funcName: "Radar", component: Radar, defaultColor: "#4ade80", hasCustomChars: false },
+  { name: "Equalizer", funcName: "Equalizer", component: Equalizer, defaultColor: "#f472b6", hasCustomChars: false },
+  { name: "3D Cube", funcName: "SpinCube", component: SpinCube, defaultColor: "#fbbf24", hasCustomChars: false },
+  { name: "Typewriter", funcName: "Typing", component: Typing, defaultColor: "#e4e4e7", hasCustomChars: true, charLabel: "text to type", charPlaceholder: "Hello world..." },
+  { name: "Pulsing Heart", funcName: "Heart", component: Heart, defaultColor: "#f43f5e", hasCustomChars: false },
+  { name: "Rain", funcName: "Rain", component: Rain, defaultColor: "#60a5fa", hasCustomChars: true, charLabel: "raindrop chars", charPlaceholder: "│¦" },
+  { name: "Spinner", funcName: "Spinner", component: Spinner, defaultColor: "#fbbf24", hasCustomChars: false },
+  { name: "Plasma", funcName: "Plasma", component: Plasma, defaultColor: "#c084fc", hasCustomChars: true, charLabel: "density chars (4+)", charPlaceholder: " ░▒▓█▓▒░" },
+  { name: "Sine Snake", funcName: "SineSnake", component: SineSnake, defaultColor: "#34d399", hasCustomChars: false },
+  { name: "Game of Life", funcName: "GameOfLife", component: GameOfLife, defaultColor: "#4ade80", hasCustomChars: true, charLabel: "alive + dead char", charPlaceholder: "█ " },
+  { name: "Analog Clock", funcName: "AsciiClock", component: AsciiClock, defaultColor: "#fbbf24", hasCustomChars: false },
+  { name: "Bouncing Ball", funcName: "BouncingBall", component: BouncingBall, defaultColor: "#fb923c", hasCustomChars: false },
+  { name: "Glitch Text", funcName: "GlitchText", component: GlitchText, defaultColor: "#ef4444", hasCustomChars: true, charLabel: "text to glitch", charPlaceholder: "SYSTEM ERROR" },
+  { name: "Mandala", funcName: "Mandala", component: Mandala, defaultColor: "#e879f9", hasCustomChars: true, charLabel: "pattern chars (4+)", charPlaceholder: " ·∘○◎●◉" },
+  { name: "Progress Bar", funcName: "ProgressBar", component: ProgressBar, defaultColor: "#22d3ee", hasCustomChars: true, charLabel: "fill + empty char", charPlaceholder: "█░" },
+  { name: "Tie-Dye", funcName: "TieDye", component: TieDye, defaultColor: null, hasCustomChars: true, isTieDye: true, charLabel: "density chars (4+)", charPlaceholder: " ░▒▓█▓▒░" },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -551,7 +570,28 @@ export default function AsciiGallery() {
   };
 
   const handleCopy = () => {
-    const name = anim.name.replace(/\s/g, "");
+    const fn = anim.funcName;
+    const source = extractFromSource(`function ${fn}(`);
+    if (!source) return;
+
+    const hooks = [];
+    if (source.includes("useState")) hooks.push("useState");
+    if (source.includes("useEffect")) hooks.push("useEffect");
+    if (source.includes("useRef")) hooks.push("useRef");
+
+    let file = `// ${anim.name} — ASCII Animation Component\n`;
+    file += `// https://ascii-hub.vercel.app\n\n`;
+    file += `import { ${hooks.join(", ")} } from "react";\n\n`;
+    file += `const MONO = "'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace";\n`;
+
+    if (anim.isTieDye) {
+      const palettes = extractFromSource("const TIEDYE_PALETTES");
+      if (palettes) file += `\n${palettes}\n`;
+    }
+
+    file += `\n${source}\n\n`;
+    file += `export default ${fn};\n\n`;
+
     let props = [];
     if (color && !anim.isTieDye) props.push(`color="${color}"`);
     props.push(`size={${size}}`);
@@ -561,8 +601,9 @@ export default function AsciiGallery() {
       props.push(`twist={${twist}}`);
       props.push(`rings={${rings}}`);
     }
-    const snippet = `<${name} ${props.join(" ")} />`;
-    navigator.clipboard.writeText(snippet).then(() => {
+    file += `// Usage: <${fn} ${props.join(" ")} />\n`;
+
+    navigator.clipboard.writeText(file).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -590,7 +631,7 @@ export default function AsciiGallery() {
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontFamily: MONO, fontSize: 11, color: "#3f3f46", letterSpacing: "0.12em", marginBottom: 6 }}>{"// "}ASCII ANIMATIONS</div>
             <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>21 Copy-Paste ASCII Animations</h1>
-            <p style={{ fontSize: 13, color: "#52525b", marginTop: 4 }}>Click any animation · Customize color, size & characters · Copy the JSX</p>
+            <p style={{ fontSize: 13, color: "#52525b", marginTop: 4 }}>Click any animation · Customize · Copy self-contained React components</p>
           </div>
 
           <div style={{ display: "flex", gap: 20 }}>
@@ -654,7 +695,7 @@ export default function AsciiGallery() {
                       background: copied ? "rgba(34,197,94,0.1)" : "#111",
                       color: copied ? "#4ade80" : "#a1a1aa",
                       fontSize: 12, fontWeight: 600, fontFamily: MONO, cursor: "pointer",
-                    }}>{copied ? "✓ Copied!" : "Copy JSX"}</button>
+                    }}>{copied ? "✓ Copied!" : "Copy Component"}</button>
                   </div>
                 </div>
               )}
@@ -695,7 +736,7 @@ export default function AsciiGallery() {
                         background: copied ? "rgba(34,197,94,0.1)" : "#111",
                         color: copied ? "#4ade80" : "#a1a1aa",
                         fontSize: 12, fontWeight: 600, fontFamily: MONO, cursor: "pointer",
-                      }}>{copied ? "✓ Copied!" : "Copy JSX"}</button>
+                      }}>{copied ? "✓ Copied!" : "Copy Component"}</button>
                     </div>
                   </div>
                   <div style={{
